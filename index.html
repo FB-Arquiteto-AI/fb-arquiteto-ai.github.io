@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FB ARQUITETO AI - NEXUS</title>
+    <style>
+        body { background: #000; margin: 0; overflow: hidden; font-family: monospace; }
+        canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+        #painel { 
+            position: relative; z-index: 10; display: flex; 
+            justify-content: center; align-items: center; height: 100vh; 
+        }
+        .capsula {
+            background: rgba(0,0,0,0.9); border: 2px solid gold; 
+            padding: 25px; border-radius: 15px; 
+            box-shadow: 0 0 20px gold; text-align: center;
+        }
+        h2 { color: gold; margin: 0 0 10px 0; letter-spacing: 3px; }
+        p { color: #fff; margin: 5px 0; }
+        button {
+            background: gold; color: black; border: none; 
+            padding: 10px 20px; font-weight: bold; 
+            border-radius: 5px; cursor: pointer; margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+    <div id="painel">
+        <div class="capsula">
+            <h2>ID: ARQUITETO</h2>
+            <p>NOME: <span style="color: gold;">FABRICIO</span></p>
+            <p>STATUS: <span id="status" style="color: lime;">SISTEMA ONLINE</span></p>
+            <button id="btnAtivar">ATIVAR PROTOCOLO</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let matrixColor = "#0F0";
+        const symbols = "01FABRICIO10NEXUS01LYRA0199%011%";
+        let columns = canvas.width / 20;
+        let drops = Array(Math.floor(columns)).fill(1);
+        function draw() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = matrixColor;
+            ctx.font = "15px monospace";
+            for (let i = 0; i < drops.length; i++) {
+                const text = symbols.charAt(Math.floor(Math.random() * symbols.length));
+                ctx.fillText(text, i * 20, drops[i] * 20);
+                if (drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        document.getElementById('btnAtivar').addEventListener('click', () => {
+            matrixColor = (matrixColor === "#0F0") ? "gold" : "#0F0";
+            document.getElementById('status').innerText = "OVERDRIVE ATIVO";
+            document.getElementById('status').style.color = "gold";
+        });
+        setInterval(draw, 50);
+        window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    </script>
+</body>
+</html>
+
