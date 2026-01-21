@@ -1,30 +1,25 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TERRA 2 - MODO LIVRE</title>
+    <title>TERRA 2 - ARQUITETO FABRICIO</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; }
-        #ui { position: absolute; top: 10px; left: 10px; color: gold; z-index: 100; pointer-events: none; }
-        .controles { 
-            position: absolute; bottom: 20px; width: 100%; 
-            display: flex; justify-content: space-around; z-index: 100;
-        }
-        .btn { 
-            width: 70px; height: 70px; background: rgba(255,215,0,0.3); 
-            border: 2px solid gold; border-radius: 50%; color: gold;
-            display: flex; align-items: center; justify-content: center; font-weight: bold;
-        }
+        body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
+        #ui { position: absolute; top: 15px; left: 15px; color: gold; z-index: 100; font-family: 'Courier New', Courier, monospace; pointer-events: none; }
+        /* O Joystick Digital */
+        #joystick-container { position: absolute; bottom: 50px; left: 50px; width: 120px; height: 120px; background: rgba(255, 215, 0, 0.1); border: 2px solid gold; border-radius: 50%; z-index: 100; }
+        #joystick-knob { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: gold; border-radius: 50%; box-shadow: 0 0 15px gold; }
     </style>
 </head>
 <body>
-    <div id="ui"><h2>TERRA 2: EXPLORAÇÃO</h2><p>VÔO E MOVIMENTO ATIVOS</p></div>
-    
-    <div class="controles">
-        <div class="btn" id="subir">SOBE</div>
-        <div class="btn" id="frente">FRENTE</div>
-        <div class="btn" id="descer">DESCE</div>
+    <div id="ui">
+        <h1>TERRA 2</h1>
+        <p>A.E.T.E.R.N.A NEXUS / L.Y.R.A</p>
+        <p>ARQUITETO: FABRICIO</p>
     </div>
+
+    <div id="joystick-container"><div id="joystick-knob"></div></div>
 
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
@@ -35,50 +30,67 @@
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000510);
+        scene.fog = new THREE.Fog(0x000510, 10, 150);
+
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Luz e Chão
-        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-        const grid = new THREE.GridHelper(1000, 100, 0xffd700, 0x111111);
+        // Chão Grid e Luzes
+        const grid = new THREE.GridHelper(1000, 100, 0x00ffff, 0x003333);
         scene.add(grid);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-        // Criar Prédios com "Portas"
-        function createBuilding(x, z) {
-            const h = Math.random() * 20 + 5;
-            const geo = new THREE.BoxGeometry(4, h, 4);
-            const mat = new THREE.MeshPhongMaterial({ color: 0x000000, emissive: 0xffd700, emissiveIntensity: 0.1 });
-            const b = new THREE.Mesh(geo, mat);
-            b.position.set(x, h/2, z);
-            scene.add(b);
+        // Prédios da Metrópole
+        function createCity() {
+            for(let i=0; i<80; i++) {
+                const h = Math.random() * 30 + 5;
+                const geo = new THREE.BoxGeometry(3, h, 3);
+                const mat = new THREE.MeshPhongMaterial({ color: 0x001122, emissive: 0x00ffff, emissiveIntensity: 0.2 });
+                const b = new THREE.Mesh(geo, mat);
+                b.position.set((Math.random()-0.5)*150, h/2, (Math.random()-0.5)*150);
+                scene.add(b);
+            }
         }
-
-        for(let i=0; i<50; i++) {
-            createBuilding((Math.random()-0.5)*100, (Math.random()-0.5)*100);
-        }
+        createCity();
 
         camera.position.set(0, 5, 10);
 
-        let move = { f: false, u: false, d: false };
-        document.getElementById('frente').ontouchstart = () => move.f = true;
-        document.getElementById('frente').ontouchend = () => move.f = false;
-        document.getElementById('subir').ontouchstart = () => move.u = true;
-        document.getElementById('subir').ontouchend = () => move.u = false;
-        document.getElementById('descer').ontouchstart = () => move.d = true;
-        document.getElementById('descer').ontouchend = () => move.d = false;
+        // Lógica do Joystick (L.Y.R.A Engine)
+        const knob = document.getElementById('joystick-knob');
+        const container = document.getElementById('joystick-container');
+        let moveX = 0, moveY = 0, active = false;
+
+        container.addEventListener('touchstart', (e) => active = true);
+        window.addEventListener('touchend', () => { active = false; knob.style.left = '35px'; knob.style.top = '35px'; moveX = 0; moveY = 0; });
+        
+        window.addEventListener('touchmove', (e) => {
+            if (!active) return;
+            let touch = e.touches[0];
+            let rect = container.getBoundingClientRect();
+            let x = touch.clientX - rect.left - 60;
+            let y = touch.clientY - rect.top - 60;
+            let dist = Math.sqrt(x*x + y*y);
+            if (dist > 50) { x *= 50/dist; y *= 50/dist; }
+            knob.style.left = (x + 35) + 'px';
+            knob.style.top = (y + 35) + 'px';
+            moveX = x / 50;
+            moveY = y / 50;
+        });
 
         function animate() {
             requestAnimationFrame(animate);
-            if(move.f) camera.translateZ(-0.5);
-            if(move.u) camera.position.y += 0.3;
-            if(move.d && camera.position.y > 1) camera.position.y -= 0.3;
-            
+            if (active) {
+                camera.translateZ(moveY * 0.5);
+                camera.translateX(moveX * 0.5);
+                // Inclinação de voo baseada no joystick
+                if (moveY < -0.5) camera.position.y += 0.1;
+                if (moveY > 0.5 && camera.position.y > 2) camera.position.y -= 0.1;
+            }
             renderer.render(scene, camera);
         }
         animate();
     </script>
 </body>
 </html>
-
